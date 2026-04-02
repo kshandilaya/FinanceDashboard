@@ -1,12 +1,22 @@
 ﻿namespace FinanceDashboard.DTOs
 {
+    using System.ComponentModel.DataAnnotations;
+
     public class FinancialRecordCreateDto
     {
+        [Required]
+        [Range(1, double.MaxValue)]
         public decimal Amount { get; set; }
-        public string Type { get; set; } // Income / Expense
+
+        [Required]
+        public string Type { get; set; }
+
         public string Category { get; set; }
+
         public DateTime Date { get; set; }
+
         public string Notes { get; set; }
+
         public int CreatedBy { get; set; }
     }
 }

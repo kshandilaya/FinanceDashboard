@@ -1,4 +1,5 @@
 ﻿using FinanceDashboard.DTOs;
+using FinanceDashboard.Helpers;
 using FinanceDashboard.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +19,12 @@ namespace FinanceDashboard.Controllers
         [HttpPost]
         public IActionResult CreateUser(UserCreateDto dto)
         {
-            if (Request.Headers["x-user-role"] != "Admin")
+            var role = RoleHelper.GetRole(HttpContext);
+
+            if (string.IsNullOrEmpty(role))
+                return Unauthorized("Role header missing");
+
+            if (!RoleHelper.IsAdmin(HttpContext))
                 return Unauthorized("Only Admin can create users");
 
             var user = new User
@@ -44,6 +50,11 @@ namespace FinanceDashboard.Controllers
         [HttpGet]
         public IActionResult GetUsers()
         {
+            var role = RoleHelper.GetRole(HttpContext);
+
+            if (string.IsNullOrEmpty(role))
+                return Unauthorized("Role header missing");
+
             var users = _context.Users
                 .Select(u => new UserResponseDto
                 {

@@ -1,4 +1,5 @@
 ﻿using FinanceDashboard.DTOs;
+using FinanceDashboard.Helpers;
 using FinanceDashboard.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,8 +20,13 @@ namespace FinanceDashboard.Controllers
         [HttpPost]
         public IActionResult Create(FinancialRecordCreateDto dto)
         {
-            if (Request.Headers["x-user-role"] != "Admin")
-                return Unauthorized("Only Admin can create records");
+            var role = RoleHelper.GetRole(HttpContext);
+
+            if (string.IsNullOrEmpty(role))
+                return Unauthorized("Role header missing");
+
+            if (!RoleHelper.IsAdmin(HttpContext))
+                return Unauthorized("Only Admin can perform this action");
 
             if (dto.Amount <= 0)
                 return BadRequest("Amount must be greater than 0");
@@ -45,6 +51,11 @@ namespace FinanceDashboard.Controllers
         [HttpGet]
         public IActionResult GetAll(string? type, string? category, DateTime? startDate, DateTime? endDate)
         {
+            var role = RoleHelper.GetRole(HttpContext);
+
+            if (string.IsNullOrEmpty(role))
+                return Unauthorized("Role header missing");
+
             var query = _context.FinancialRecords.AsQueryable();
 
             if (!string.IsNullOrEmpty(type))
@@ -78,8 +89,13 @@ namespace FinanceDashboard.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(int id, FinancialRecordCreateDto dto)
         {
-            if (Request.Headers["x-user-role"] != "Admin")
-                return Unauthorized("Only Admin can update records");
+            var role = RoleHelper.GetRole(HttpContext);
+
+            if (string.IsNullOrEmpty(role))
+                return Unauthorized("Role header missing");
+
+            if (!RoleHelper.IsAdmin(HttpContext))
+                return Unauthorized("Only Admin can perform this action");
 
             var record = _context.FinancialRecords.Find(id);
 
@@ -101,8 +117,13 @@ namespace FinanceDashboard.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            if (Request.Headers["x-user-role"] != "Admin")
-                return Unauthorized("Only Admin can delete records");
+            var role = RoleHelper.GetRole(HttpContext);
+
+            if (string.IsNullOrEmpty(role))
+                return Unauthorized("Role header missing");
+
+            if (!RoleHelper.IsAdmin(HttpContext))
+                return Unauthorized("Only Admin can perform this action");
 
             var record = _context.FinancialRecords.Find(id);
 
