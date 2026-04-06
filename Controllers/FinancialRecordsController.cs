@@ -20,12 +20,12 @@ namespace FinanceDashboard.Controllers
         [HttpPost]
         public IActionResult Create(FinancialRecordCreateDto dto)
         {
-            var role = RoleHelper.GetRole(HttpContext);
+            var user = RoleHelper.GetUser(HttpContext, _context);
 
-            if (string.IsNullOrEmpty(role))
-                return Unauthorized("Role header missing");
+            if (user == null)
+                return Unauthorized("Invalid or inactive user");
 
-            if (!RoleHelper.IsAdmin(HttpContext))
+            if (!RoleHelper.IsAdmin(user))
                 return Unauthorized("Only Admin can perform this action");
 
             if (dto.Amount <= 0)
@@ -51,10 +51,12 @@ namespace FinanceDashboard.Controllers
         [HttpGet]
         public IActionResult GetAll(string? type, string? category, DateTime? startDate, DateTime? endDate)
         {
-            var role = RoleHelper.GetRole(HttpContext);
+            var user = RoleHelper.GetUser(HttpContext, _context);
 
-            if (string.IsNullOrEmpty(role))
-                return Unauthorized("Role header missing");
+            if (user == null)
+                return Unauthorized("Invalid or inactive user");
+
+            // Analyst & Admin allowed, Viewer allowed if you want
 
             var query = _context.FinancialRecords.AsQueryable();
 
@@ -89,13 +91,10 @@ namespace FinanceDashboard.Controllers
         [HttpPut("{id}")]
         public IActionResult Update(int id, FinancialRecordCreateDto dto)
         {
-            var role = RoleHelper.GetRole(HttpContext);
+            var user = RoleHelper.GetUser(HttpContext, _context);
 
-            if (string.IsNullOrEmpty(role))
-                return Unauthorized("Role header missing");
-
-            if (!RoleHelper.IsAdmin(HttpContext))
-                return Unauthorized("Only Admin can perform this action");
+            if (user == null)
+                return Unauthorized("Invalid or inactive user");
 
             var record = _context.FinancialRecords.Find(id);
 
@@ -117,13 +116,10 @@ namespace FinanceDashboard.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var role = RoleHelper.GetRole(HttpContext);
+            var user = RoleHelper.GetUser(HttpContext, _context);
 
-            if (string.IsNullOrEmpty(role))
-                return Unauthorized("Role header missing");
-
-            if (!RoleHelper.IsAdmin(HttpContext))
-                return Unauthorized("Only Admin can perform this action");
+            if (user == null)
+                return Unauthorized("Invalid or inactive user");
 
             var record = _context.FinancialRecords.Find(id);
 

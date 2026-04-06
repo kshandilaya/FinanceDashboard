@@ -1,25 +1,35 @@
-﻿namespace FinanceDashboard.Helpers
+﻿using FinanceDashboard.Models;
+
+namespace FinanceDashboard.Helpers
 {
     public static class RoleHelper
     {
-        public static string GetRole(HttpContext context)
+        public static User? GetUser(HttpContext context, AppDbContext db)
         {
-            return context.Request.Headers["x-user-role"].ToString();
+            var userIdHeader = context.Request.Headers["x-user-id"].FirstOrDefault();
+
+            if (string.IsNullOrEmpty(userIdHeader))
+                return null;
+
+            if (!int.TryParse(userIdHeader, out int userId))
+                return null;
+
+            return db.Users.FirstOrDefault(u => u.Id == userId && u.IsActive);
         }
 
-        public static bool IsAdmin(HttpContext context)
+        public static bool IsAdmin(User user)
         {
-            return GetRole(context) == "Admin";
+            return user.Role == "Admin";
         }
 
-        public static bool IsAnalyst(HttpContext context)
+        public static bool IsAnalyst(User user)
         {
-            return GetRole(context) == "Analyst";
+            return user.Role == "Analyst";
         }
 
-        public static bool IsViewer(HttpContext context)
+        public static bool IsViewer(User user)
         {
-            return GetRole(context) == "Viewer";
+            return user.Role == "Viewer";
         }
     }
 }

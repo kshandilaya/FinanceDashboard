@@ -20,12 +20,12 @@ namespace FinanceDashboard.Controllers
         [HttpGet("summary")]
         public IActionResult GetSummary()
         {
-            var role = RoleHelper.GetRole(HttpContext);
+            var user = RoleHelper.GetUser(HttpContext, _context);
 
-            if (string.IsNullOrEmpty(role))
-                return Unauthorized("Role header missing");
+            if (user == null)
+                return Unauthorized("Invalid or inactive user");
 
-            if (role == "Viewer")
+            if (RoleHelper.IsViewer(user))
                 return Unauthorized("Viewer cannot access dashboard");
 
             var records = _context.FinancialRecords.ToList();
@@ -61,13 +61,26 @@ namespace FinanceDashboard.Controllers
                 })
                 .ToList();
 
+            var monthlyTrends = records
+    .GroupBy(r => new { r.Date.Year, r.Date.Month })
+    .Select(g => new MonthlyTrendDto
+    {
+        Year = g.Key.Year,
+        Month = g.Key.Month,
+        Total = g.Sum(x => x.Amount)
+    })
+    .OrderBy(x => x.Year)
+    .ThenBy(x => x.Month)
+    .ToList();
+
             var response = new DashboardResponseDto
             {
                 TotalIncome = totalIncome,
                 TotalExpense = totalExpense,
                 NetBalance = totalIncome - totalExpense,
                 CategoryBreakdown = categoryBreakdown,
-                RecentTransactions = recentTransactions
+                RecentTransactions = recentTransactions,
+                MonthlyTrends = monthlyTrends
             };
 
             return Ok(response);
